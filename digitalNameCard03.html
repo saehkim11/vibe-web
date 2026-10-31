@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>홍길동 디지털 명함</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #f4f7f8;
+      color: #1f2d3d;
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    body.dark-mode {
+      background: #14212d;
+      color: #edf3f7;
+    }
+
+    .theme-buttons {
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + 12px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-wrapper {
+      position: relative;
+      width: min(100%, 420px);
+      margin-top: 52px;
+    }
+
+    .theme-button {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid #d4e0e5;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #49626d;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .language-button {
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .theme-button:hover,
+    .theme-button:focus-visible,
+    .theme-button.active {
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .theme-button:focus-visible {
+      box-shadow: 0 0 0 3px #a6c7ce;
+    }
+
+    .theme-button-sun.active {
+      border-color: #b6d1d6;
+      background: #edf7f7;
+      color: #27717a;
+    }
+
+    .theme-button-moon.active {
+      border-color: #6f99a2;
+      background: #24404a;
+      color: #ddf1f2;
+    }
+
+    .dark-mode .theme-button {
+      border-color: #47646d;
+      background: #203640;
+      color: #ddf1f2;
+    }
+
+    .profile-card {
+      width: 100%;
+      padding: 40px 32px 32px;
+      text-align: center;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 12px 32px rgba(25, 48, 60, 0.12);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease;
+      transform-style: preserve-3d;
+    }
+
+    .profile-card.is-flipping {
+      animation: card-flip 0.5s ease-in-out;
+    }
+
+    @keyframes card-flip {
+      0% {
+        transform: perspective(900px) rotateY(0);
+      }
+
+      50% {
+        transform: perspective(900px) rotateY(90deg);
+      }
+
+      100% {
+        transform: perspective(900px) rotateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .profile-card.is-flipping {
+        animation: none;
+      }
+    }
+
+    .dark-mode .profile-card {
+      background: #1d3039;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .profile-image {
+      width: 128px;
+      height: 128px;
+      display: block;
+      margin: 0 auto 24px;
+      object-fit: cover;
+      border: 4px solid #e6eef0;
+      border-radius: 50%;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .job-title {
+      margin: 12px 0 18px;
+      color: #4d6470;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .dark-mode .job-title {
+      color: #c7d9de;
+    }
+
+    .introduction {
+      margin: 0 0 20px;
+      color: #667b85;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .dark-mode .introduction {
+      color: #b8cbd0;
+    }
+
+    .skill-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin: 0 0 24px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .skill-list li {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #edf6f6;
+      color: #246b74;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .dark-mode .skill-list li {
+      background: #28454c;
+      color: #c8e4e6;
+    }
+
+    .profile-divider {
+      height: 1px;
+      margin: 0 0 24px;
+      background: #dce7e9;
+      border: 0;
+    }
+
+    .dark-mode .profile-divider {
+      background: #405861;
+    }
+
+    .project-dialog {
+      width: min(calc(100% - 32px), 500px);
+      padding: 0;
+      border: 0;
+      border-radius: 18px;
+      background: transparent;
+    }
+
+    .project-dialog::backdrop {
+      background: rgba(20, 33, 45, 0.55);
+    }
+
+    .project-dialog-content {
+      position: relative;
+      padding: 28px;
+      border-radius: 18px;
+      background: #f1f7f7;
+      text-align: left;
+    }
+
+    .project-case-label {
+      margin: 0 0 8px;
+      color: #246b74;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .project-dialog-content h2 {
+      margin: 0 0 10px;
+      color: #1f3944;
+      font-size: 18px;
+    }
+
+    .project-dialog-content p {
+      margin: 0;
+      color: #526b74;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .project-detail-list {
+      display: grid;
+      gap: 8px;
+      margin: 16px 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .project-detail-list li {
+      color: #405a64;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .project-detail-list strong {
+      color: #1f3944;
+    }
+
+    .project-tools {
+      color: #246b74 !important;
+      font-size: 13px !important;
+      font-weight: 700;
+    }
+
+    .project-open-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      background: #1f5e6b;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .dialog-close-button {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 50%;
+      background: #dcebed;
+      color: #37505c;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .dark-mode .project-dialog-content {
+      background: #243e46;
+    }
+
+    .dark-mode .project-case-label,
+    .dark-mode .project-tools {
+      color: #a8d4d8 !important;
+    }
+
+    .dark-mode .project-dialog-content h2,
+    .dark-mode .project-detail-list strong {
+      color: #edf6f6;
+    }
+
+    .dark-mode .project-dialog-content p,
+    .dark-mode .project-detail-list li {
+      color: #c5dadd;
+    }
+
+    .button-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .profile-button {
+      display: block;
+      width: 100%;
+      padding: 15px 18px;
+      border: 0;
+      border-radius: 12px;
+      background: #1f5e6b;
+      color: #ffffff;
+      font: inherit;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .primary-button:hover,
+    .primary-button:focus-visible {
+      transform: translateY(-3px);
+      background: #174b56;
+      box-shadow: 0 8px 16px rgba(31, 94, 107, 0.25);
+    }
+
+    .secondary-button {
+      border: 1px solid #d4e0e5;
+      background: #ffffff;
+      color: #37505c;
+    }
+
+    .secondary-button:hover,
+    .secondary-button:focus-visible {
+      transform: translateY(-3px);
+      border-color: #9fc2c8;
+      background: #f0f8f8;
+      box-shadow: 0 8px 16px rgba(30, 40, 50, 0.1);
+    }
+
+    .dark-mode .secondary-button {
+      border-color: #47646d;
+      background: #243b44;
+      color: #e0edef;
+    }
+
+    .dark-mode .secondary-button:hover,
+    .dark-mode .secondary-button:focus-visible {
+      border-color: #83aeb6;
+      background: #2c4851;
+    }
+
+    .profile-button:focus-visible {
+      outline: 3px solid #a6c7ce;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 16px;
+      }
+
+      .profile-card {
+        padding: 32px 22px 24px;
+        border-radius: 20px;
+      }
+
+      .profile-image {
+        width: 112px;
+        height: 112px;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <div class="card-wrapper">
+    <div class="theme-buttons" aria-label="화면 모드 선택">
+      <button class="theme-button language-button" id="language-mode-button" type="button" aria-label="영문으로 변경">KR</button>
+      <button class="theme-button theme-button-sun active" id="theme-mode-button" type="button" aria-label="다크 모드로 변경">☀</button>
+    </div>
+
+    <main class="profile-card" id="profile-card">
+      <img class="profile-image" src="../images/cat.png" alt="홍길동 프로필 사진" id="profile-image">
+      <h1 id="profile-name">홍길동</h1>
+      <p class="job-title" id="job-title">디지털 마케팅 / 프로덕트 기획자</p>
+      <p class="introduction" id="introduction">AI와 데이터를 활용해 비즈니스 문제를 해결합니다.</p>
+      <ul class="skill-list" id="skill-list" aria-label="핵심 분야">
+        <li id="skill-marketing">디지털 마케팅</li>
+        <li id="skill-product">프로덕트 기획</li>
+        <li id="skill-ai">AI·데이터 활용</li>
+      </ul>
+      <hr class="profile-divider">
+
+      <div class="button-list">
+        <button class="profile-button primary-button" id="project-case-button" type="button">프로젝트 사례 보기</button>
+        <a class="profile-button secondary-button" id="linkedin-link" href="http://b.com/b">링크드인 프로필 보기</a>
+        <button class="profile-button secondary-button" id="copy-email-button" type="button">이메일 주소 복사하기</button>
+      </div>
+    </main>
+  </div>
+
+  <dialog class="project-dialog" id="project-dialog" aria-labelledby="project-case-title">
+    <div class="project-dialog-content">
+      <button class="dialog-close-button" id="dialog-close-button" type="button" aria-label="프로젝트 사례 닫기">×</button>
+        <p class="project-case-label" id="project-case-label">대표 실습 프로젝트</p>
+        <h2 id="project-case-title">교육 만족도 설문 화면</h2>
+        <p id="project-description">교육 참여자의 이해도와 의견을 간단하게 수집할 수 있도록 만든 반응형 설문 페이지입니다.</p>
+        <ul class="project-detail-list">
+          <li><strong id="implementation-label">구현 내용</strong><span id="implementation-detail"> · 만족도 선택, 자유 의견 입력, 제출 결과 안내</span></li>
+          <li><strong id="flow-label">사용자 흐름</strong><span id="flow-detail"> · 질문 확인 → 응답 선택 → 의견 작성 → 제출</span></li>
+          <li><strong id="result-label">확인 결과</strong><span id="result-detail"> · 선택한 응답을 제출 후 바로 확인할 수 있도록 구현</span></li>
+        </ul>
+        <p class="project-tools">HTML · CSS · JavaScript</p>
+        <a class="project-open-link" id="project-open-link" href="../Day03/example_10_survey.html" target="_blank" rel="noopener">설문 화면 열기</a>
+    </div>
+  </dialog>
+
+  <script>
+    const copyEmailButton = document.getElementById('copy-email-button');
+    const profileCard = document.getElementById('profile-card');
+    const projectCaseButton = document.getElementById('project-case-button');
+    const projectDialog = document.getElementById('project-dialog');
+    const dialogCloseButton = document.getElementById('dialog-close-button');
+    const themeModeButton = document.getElementById('theme-mode-button');
+    const languageModeButton = document.getElementById('language-mode-button');
+    const emailAddress = 'a@naver.com';
+    let currentLanguage = 'ko';
+
+    const texts = {
+      ko: {
+        pageTitle: '홍길동 디지털 명함', imageAlt: '홍길동 프로필 사진', name: '홍길동',
+        job: '디지털 마케팅 / 프로덕트 기획자', introduction: 'AI와 데이터를 활용해 비즈니스 문제를 해결합니다.',
+        skillsLabel: '핵심 분야', marketing: '디지털 마케팅', product: '프로덕트 기획', ai: 'AI·데이터 활용',
+        projectButton: '프로젝트 사례 보기', openProject: '설문 화면 열기', linkedinButton: '링크드인 프로필 보기', emailButton: '이메일 주소 복사하기',
+        projectLabel: '대표 실습 프로젝트', projectTitle: '교육 만족도 설문 화면',
+        description: '교육 참여자의 이해도와 의견을 간단하게 수집할 수 있도록 만든 반응형 설문 페이지입니다.',
+        implementationLabel: '구현 내용', implementationDetail: ' · 만족도 선택, 자유 의견 입력, 제출 결과 안내',
+        flowLabel: '사용자 흐름', flowDetail: ' · 질문 확인 → 응답 선택 → 의견 작성 → 제출',
+        resultLabel: '확인 결과', resultDetail: ' · 선택한 응답을 제출 후 바로 확인할 수 있도록 구현',
+        languageLabel: '영문으로 변경', closeProject: '프로젝트 사례 닫기', copied: '이메일 주소가 복사되었습니다', copyFailed: '복사에 실패했습니다'
+      },
+      en: {
+        pageTitle: 'Hong Gildong Digital Card', imageAlt: 'Hong Gildong profile photo', name: 'Hong Gildong',
+        job: 'Digital Marketing / Product Planner', introduction: 'Solving business challenges with AI and data.',
+        skillsLabel: 'Core skills', marketing: 'Digital Marketing', product: 'Product Planning', ai: 'AI & Data',
+        projectButton: 'View Project Case', openProject: 'Open Survey Page', linkedinButton: 'View LinkedIn Profile', emailButton: 'Copy Email Address',
+        projectLabel: 'Featured Practice Project', projectTitle: 'Training Satisfaction Survey',
+        description: 'A responsive survey page created to collect participants\' understanding and feedback simply.',
+        implementationLabel: 'Built', implementationDetail: ' · Satisfaction selection, open feedback, and submission confirmation',
+        flowLabel: 'User flow', flowDetail: ' · Review question → Select response → Write feedback → Submit',
+        resultLabel: 'Verified', resultDetail: ' · The selected response is shown immediately after submission',
+        languageLabel: '한국어로 변경', closeProject: 'Close project case', copied: 'Email address copied', copyFailed: 'Copy failed'
+      }
+    };
+
+    function setTheme(isDarkMode) {
+      document.body.classList.toggle('dark-mode', isDarkMode);
+      themeModeButton.classList.toggle('theme-button-sun', !isDarkMode);
+      themeModeButton.classList.toggle('theme-button-moon', isDarkMode);
+      themeModeButton.textContent = isDarkMode ? '☾' : '☀';
+      themeModeButton.setAttribute(
+        'aria-label',
+        isDarkMode ? '라이트 모드로 변경' : '다크 모드로 변경'
+      );
+    }
+
+    function flipCard(changeCardContent) {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        changeCardContent();
+        return;
+      }
+
+      profileCard.classList.remove('is-flipping');
+      void profileCard.offsetWidth;
+      profileCard.classList.add('is-flipping');
+
+      setTimeout(changeCardContent, 250);
+    }
+
+    profileCard.addEventListener('animationend', () => {
+      profileCard.classList.remove('is-flipping');
+    });
+
+    themeModeButton.addEventListener('click', () => {
+      flipCard(() => {
+        setTheme(!document.body.classList.contains('dark-mode'));
+      });
+    });
+
+    projectCaseButton.addEventListener('click', () => projectDialog.showModal());
+    dialogCloseButton.addEventListener('click', () => projectDialog.close());
+
+    function setLanguage(language) {
+      const text = texts[language];
+      currentLanguage = language;
+      document.documentElement.lang = language;
+      document.title = text.pageTitle;
+      document.getElementById('profile-image').alt = text.imageAlt;
+      document.getElementById('profile-name').textContent = text.name;
+      document.getElementById('job-title').textContent = text.job;
+      document.getElementById('introduction').textContent = text.introduction;
+      document.getElementById('skill-list').setAttribute('aria-label', text.skillsLabel);
+      document.getElementById('skill-marketing').textContent = text.marketing;
+      document.getElementById('skill-product').textContent = text.product;
+      document.getElementById('skill-ai').textContent = text.ai;
+      projectCaseButton.textContent = text.projectButton;
+      document.getElementById('project-open-link').textContent = text.openProject;
+      dialogCloseButton.setAttribute('aria-label', text.closeProject);
+      document.getElementById('linkedin-link').textContent = text.linkedinButton;
+      copyEmailButton.textContent = text.emailButton;
+      document.getElementById('project-case-label').textContent = text.projectLabel;
+      document.getElementById('project-case-title').textContent = text.projectTitle;
+      document.getElementById('project-description').textContent = text.description;
+      document.getElementById('implementation-label').textContent = text.implementationLabel;
+      document.getElementById('implementation-detail').textContent = text.implementationDetail;
+      document.getElementById('flow-label').textContent = text.flowLabel;
+      document.getElementById('flow-detail').textContent = text.flowDetail;
+      document.getElementById('result-label').textContent = text.resultLabel;
+      document.getElementById('result-detail').textContent = text.resultDetail;
+      languageModeButton.textContent = language === 'ko' ? 'KR' : 'EN';
+      languageModeButton.setAttribute('aria-label', text.languageLabel);
+    }
+
+    languageModeButton.addEventListener('click', () => {
+      flipCard(() => {
+        setLanguage(currentLanguage === 'ko' ? 'en' : 'ko');
+      });
+    });
+
+    copyEmailButton.addEventListener('click', async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(emailAddress);
+        } else {
+          const textArea = document.createElement('textarea');
+          textArea.value = emailAddress;
+          textArea.style.position = 'fixed';
+          textArea.style.opacity = '0';
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          textArea.remove();
+        }
+        copyEmailButton.textContent = texts[currentLanguage].copied;
+      } catch (error) {
+        copyEmailButton.textContent = texts[currentLanguage].copyFailed;
+      }
+
+      setTimeout(() => {
+        copyEmailButton.textContent = texts[currentLanguage].emailButton;
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
